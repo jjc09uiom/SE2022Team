@@ -5,7 +5,7 @@
 #include <windows.h>
 using namespace std;
 #define MAX 90
-int sum = 8 * 20;	//总请求次数**********************************************************************
+int sum = 8*20  ;	//总请求次数**********************************************************************
 int value;			//有效点名次数
 int flag;//迭代次数
 string cur;			//课程名存放
@@ -40,12 +40,14 @@ void judge2(struct stuMessage* curse, int flag);
 void judge3(struct stuMessage* curse, int flag);
 //UTF-8编码转为GBK编码，解决读取csv文件时出现乱码的问题
 string Utf8ToGbk(const char* src_str);
+//GBK编码转为UTF-8编码，解决存入抽点方案时乱码
+string GbkToUtf8(const char* src_str);
 //split分割字符串函数
 void Stringsplit(string str, const const char split, vector<string>& res);
 //输出E值
 void outE();
 //输出抽点方案
-
+void outPlan(struct stuMessage curse,ofstream ofs);
 int main() {
 	//读取要点名的课程名——选择文件的依据
 	star(cur);
@@ -59,11 +61,11 @@ void star(string cur) {
 		cin >> cur;
 		if (cur == "q")     // 退出
 			break;
-		else if (cur == "1") openFile(cur, curse1);
-		else if (cur == "2") openFile(cur, curse2);
-		else if (cur == "3") openFile(cur, curse3);
-		else if (cur == "4") openFile(cur, curse4);
-		else if (cur == "5") openFile(cur, curse5);
+		else if(cur == "1") openFile(cur, curse1);
+		else if(cur == "2") openFile(cur, curse2);
+		else if(cur == "3") openFile(cur, curse3);
+		else if(cur == "4") openFile(cur, curse4);
+		else if(cur == "5") openFile(cur, curse5);
 	}
 	return;
 }
@@ -80,7 +82,7 @@ void openFile(string cur, struct stuMessage* curse) {
 			vector<string>strlist;
 			Stringsplit(dst_str, ',', strlist);		//拆分字符串
 			curse[i].na = strlist[0], curse[i].sex = strlist[1], curse[i].sno = std::stoi(strlist[2]), curse[i].GPA = std::stof(strlist[3]);
-			for (j = 4; j < strlist.size(); j++)
+			for (j = 4; j < strlist.size(); j++) 
 				curse[i].attend[j - 4] = std::stoi(strlist[j]);
 			i++;
 		}
@@ -150,14 +152,16 @@ void openFile(string cur, struct stuMessage* curse) {
 		}
 		fin.close();
 	}
-
+	
 	//计算**********************************************************************************
 	for (flag = 0; flag < 20; flag++) {
+		judge1(curse);
 		if (flag != 0) {
+			
+			judge3(curse, flag);
 			judge2(curse, flag);
-			//judge3(curse, flag);
 		}
-		//judge1(curse);
+		
 		/*for (i = 0; i < MAX; i++) {
 			for (j = 0; j < 20; j++) {
 				cout << curse[i].attend[j] << " ";
@@ -165,10 +169,22 @@ void openFile(string cur, struct stuMessage* curse) {
 			cout << endl;
 		}
 		cout << flag << "____________" << endl;*/
-		for (i = 0; i < 8; i++) {
+		ofstream ofs;
+		ofs.open("d:\Plan1.txt", ios::app);
+		ofs << "课程节次：" << flag << endl;
+
+		for (i = 0; i < 8; i++) {		//输出
+			/*ofstream ofs;
+			ofs.open("d:\Plan1.txt", ios::app);*/
+			/*const char*  src_str = "课程节次：";
+			string dst_str = GbkToUtf8(src_str);*/
+			
+			ofs << curse[i].na << " " << curse[i].sno << endl;
 			if (curse[i].attend[flag] == 0)
 				value++;
 		}
+		ofs << "——————————————" << endl;
+		ofs.close();
 	}
 	/*for (i = 0; i < 8; i++) {
 		if (curse[i].attend[19] == 0)
@@ -181,9 +197,9 @@ void openFile(string cur, struct stuMessage* curse) {
 //排序
 void judge1(struct stuMessage* curse) {
 	struct stuMessage x;
-	for (int i = 0; i < MAX - 1; i++)
+	for (int i = 0; i < MAX-1; i++)
 	{
-		for (int j = 0; j < MAX - i - 1; j++) {
+		for (int j = 0; j < MAX - i-1; j++) {
 			if (curse[j].GPA > curse[j + 1].GPA) {
 				x = curse[j + 1];
 				curse[j + 1] = curse[j];
@@ -207,9 +223,9 @@ void judge2(struct stuMessage* curse, int flag) {
 		curse[i].rate = va * 1.0 / flag;
 	}
 	struct stuMessage x;
-	for (int i = 0; i < MAX - 1; i++)
+	for (int i = 0; i < MAX-1; i++)
 	{
-		for (int j = 0; j < MAX - i - 1; j++) {
+		for (int j = 0; j < MAX - i-1; j++) {
 			if (curse[j].rate > curse[j + 1].rate) {
 				x = curse[j + 1];
 				curse[j + 1] = curse[j];
@@ -224,9 +240,9 @@ void judge3(struct stuMessage* curse, int flag) {
 		exit(0);
 	}
 	struct stuMessage x;
-	for (int i = 0; i < MAX - 1; i++)
+	for (int i = 0; i < MAX-1; i++)
 	{
-		for (int j = 0; j < MAX - i - 1; j++) {
+		for (int j = 0; j < MAX - i-1; j++) {
 			if (curse[j].attend[flag - 1] > curse[j + 1].attend[flag - 1]) {
 				x = curse[j + 1];
 				curse[j + 1] = curse[j];
@@ -242,6 +258,9 @@ void outE() {
 	cout << value << " " << sum << endl;
 	return;
 }
+void outPlan(struct stuMessage curse,ofstream ofs) {
+	
+}
 string Utf8ToGbk(const char* src_str)
 {
 	int len = MultiByteToWideChar(CP_UTF8, 0, src_str, -1, NULL, 0);
@@ -255,6 +274,21 @@ string Utf8ToGbk(const char* src_str)
 	string strTemp(szGBK);
 	if (wszGBK) delete[] wszGBK;
 	if (szGBK) delete[] szGBK;
+	return strTemp;
+}
+string GbkToUtf8(const char* src_str)
+{
+	int len = MultiByteToWideChar(CP_ACP, 0, src_str, -1, NULL, 0);
+	wchar_t* wstr = new wchar_t[len + 1];
+	memset(wstr, 0, len + 1);
+	MultiByteToWideChar(CP_ACP, 0, src_str, -1, wstr, len);
+	len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
+	char* str = new char[len + 1];
+	memset(str, 0, len + 1);
+	WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, len, NULL, NULL);
+	string strTemp = str;
+	if (wstr) delete[] wstr;
+	if (str) delete[] str;
 	return strTemp;
 }
 void Stringsplit(string str, const const char split, vector<string>& res)
