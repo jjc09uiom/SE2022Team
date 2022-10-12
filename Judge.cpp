@@ -5,7 +5,7 @@
 #include <windows.h>
 using namespace std;
 #define MAX 90
-int sum = 8*20  ;	//总请求次数**********************************************************************
+int sum = 8*20 ;	//总请求次数**********************************************************************
 int value;			//有效点名次数
 int flag;//迭代次数
 string cur;			//课程名存放
@@ -157,28 +157,19 @@ void openFile(string cur, struct stuMessage* curse) {
 	for (flag = 0; flag < 20; flag++) {
 		judge1(curse);
 		if (flag != 0) {
-			
 			judge3(curse, flag);
 			judge2(curse, flag);
 		}
-		
-		/*for (i = 0; i < MAX; i++) {
-			for (j = 0; j < 20; j++) {
-				cout << curse[i].attend[j] << " ";
-			}
-			cout << endl;
-		}
-		cout << flag << "____________" << endl;*/
+	//输出
 		ofstream ofs;
-		ofs.open("d:\Plan1.txt", ios::app);
-		ofs << "课程节次：" << flag << endl;
+		ofs.open("d:\Plan.txt", ios::app);
+		ofs << "课程："<<cur<<"\t\t\t节次：" << flag+1 << endl;
 
-		for (i = 0; i < 8; i++) {		//输出
+		for (i = 0; i < 8; i++) {		
 			/*ofstream ofs;
 			ofs.open("d:\Plan1.txt", ios::app);*/
 			/*const char*  src_str = "课程节次：";
 			string dst_str = GbkToUtf8(src_str);*/
-			
 			ofs << curse[i].na << " " << curse[i].sno << endl;
 			if (curse[i].attend[flag] == 0)
 				value++;
@@ -186,10 +177,6 @@ void openFile(string cur, struct stuMessage* curse) {
 		ofs << "——————————————" << endl;
 		ofs.close();
 	}
-	/*for (i = 0; i < 8; i++) {
-		if (curse[i].attend[19] == 0)
-			value++;
-	}*/
 	outE();
 	value = 0;
 	return;
