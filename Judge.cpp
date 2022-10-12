@@ -5,7 +5,7 @@
 #include <windows.h>
 using namespace std;
 #define MAX 90
-int sum = 8*20 ;	//总请求次数**********************************************************************
+int sum = 8*20*5 ;	//总请求次数**********************************************************************
 int value;			//有效点名次数
 int flag;//迭代次数
 string cur;			//课程名存放
@@ -51,7 +51,7 @@ void outPlan(struct stuMessage curse,ofstream ofs);
 int main() {
 	//读取要点名的课程名——选择文件的依据
 	star(cur);
-	//outE();
+	outE();
 	return 0;
 }
 
@@ -177,8 +177,8 @@ void openFile(string cur, struct stuMessage* curse) {
 		ofs << "——————————————" << endl;
 		ofs.close();
 	}
-	outE();
-	value = 0;
+	//outE();
+	//value = 0;
 	return;
 }
 //排序
