@@ -7,7 +7,7 @@ using namespace std;
 #define MAX 90
 int sum = 8*20*5 ;	//总请求次数**********************************************************************
 int value;			//有效点名次数
-int flag;//迭代次数
+int flag;			//迭代次数
 string cur;			//课程名存放
 struct stuMessage {//一门课中的学生信息
 	string na = "";    //姓名
@@ -16,6 +16,8 @@ struct stuMessage {//一门课中的学生信息
 	double GPA = 0;     //绩点
 	int attend[20] = { 0 }; //考勤情况：0代表缺勤，1代表出勤
 	double rate = 0;	//当前出勤率
+	double factor=0;		//出勤因子（越小视作越可能缺勤）
+	/*factor = 0.8*GPA + rate + attend[flag-1] */
 	// int onTime;     //总的出勤次数--用于计算当前出勤率
 	// int flag;       //当前是第几次课（迭代次数）
 };
@@ -38,6 +40,8 @@ void judge1(struct stuMessage* curse);
 void judge2(struct stuMessage* curse, int flag);
 //排序3——上次考勤
 void judge3(struct stuMessage* curse, int flag);
+//排序4——出勤因子
+void judge4(struct stuMessage* curse, int flag);
 //UTF-8编码转为GBK编码，解决读取csv文件时出现乱码的问题
 string Utf8ToGbk(const char* src_str);
 //GBK编码转为UTF-8编码，解决存入抽点方案时乱码
@@ -72,7 +76,7 @@ void star(string cur) {
 
 void openFile(string cur, struct stuMessage* curse) {
 	//读取
-	int i = 0, j = 0;
+	int i = 0, j = 0,value1=0;
 	if (cur == "1") {
 		ifstream fin("d:\Class1.csv");
 		string line;
@@ -155,30 +159,23 @@ void openFile(string cur, struct stuMessage* curse) {
 	
 	//计算**********************************************************************************
 	for (flag = 0; flag < 20; flag++) {
-		judge1(curse);
-		if (flag != 0) {
-			judge3(curse, flag);
-			judge2(curse, flag);
-		}
+		judge4(curse, flag);
 	//输出
 		ofstream ofs;
 		ofs.open("d:\Plan.txt", ios::app);
 		ofs << "课程："<<cur<<"\t\t\t节次：" << flag+1 << endl;
 
 		for (i = 0; i < 8; i++) {		
-			/*ofstream ofs;
-			ofs.open("d:\Plan1.txt", ios::app);*/
-			/*const char*  src_str = "课程节次：";
-			string dst_str = GbkToUtf8(src_str);*/
 			ofs << curse[i].na << " " << curse[i].sno << endl;
 			if (curse[i].attend[flag] == 0)
-				value++;
+				value++,value1++;
 		}
 		ofs << "——————————————" << endl;
 		ofs.close();
 	}
-	//outE();
-	//value = 0;
+	double e = value1 * 1.0 /sum*5;
+	printf("E = %.8f\n", e);
+	value1 = 0;
 	return;
 }
 //排序
@@ -231,6 +228,44 @@ void judge3(struct stuMessage* curse, int flag) {
 	{
 		for (int j = 0; j < MAX - i-1; j++) {
 			if (curse[j].attend[flag - 1] > curse[j + 1].attend[flag - 1]) {
+				x = curse[j + 1];
+				curse[j + 1] = curse[j];
+				curse[j] = x;
+			}
+		}
+	}
+	return;
+}
+void judge4(struct stuMessage *curse, int flag) { /*factor = 0.8*GPA + rate + attend[flag-1] */
+	
+	if (flag == 0) {
+		for (int i = 0; i < MAX; i++) 
+			curse[i].factor = curse[i].GPA;
+		
+	}
+	//计算出勤率rate
+	else {
+		int va = 0;
+		for (int i = 0; i < MAX; i++) {
+			for (int j = 0; j < flag; j++) {
+				if (curse[i].attend[j] == 1) {
+					va++;
+				}
+			}
+			curse[i].rate = va * 1.0 / flag;
+		}
+	//计算factor
+		for (int i = 0; i < MAX; i++) {//2/0.45/0.2-0.58875   3/0.45/0.2-0.59
+			curse[i].factor = 3 * curse[i].GPA +6 * curse[i].rate + 1 * curse[i].attend[flag - 1];
+		}
+
+	}
+	
+	struct stuMessage x;
+	for (int i = 0; i < MAX - 1; i++)
+	{
+		for (int j = 0; j < MAX - i - 1; j++) {
+			if (curse[j].factor > curse[j + 1].factor) {
 				x = curse[j + 1];
 				curse[j + 1] = curse[j];
 				curse[j] = x;
